@@ -15,6 +15,7 @@ import { initAppointments, openAppointment, renderPastSheet, exportUpcoming } fr
 import { initFinance, renderFinance, openExpense } from './views/finance.js';
 import { initPlanning, renderPlanning, openActivities } from './views/planning.js';
 import { initProfile, renderProfile, openHorse, openNote, openSwitcher } from './views/profile.js';
+import { initCures, openCure } from './views/cures.js';
 import { initContacts, renderContacts, openContact } from './views/contacts.js';
 import { horseName } from './views/common.js';
 
@@ -194,6 +195,7 @@ function onOpen(e) {
   } else if (what === 'activities') openActivities();
   else if (what === 'horse') openHorse(false);
   else if (what === 'note') openNote();
+  else if (what === 'cure') openCure();
   else if (what === 'contact') openContact();
   else if (what === 'export') exportUpcoming();
 }
@@ -210,6 +212,7 @@ async function init() {
   initFinance();
   initPlanning();
   initProfile();
+  initCures();
   initContacts();
   initAuthUI();
 

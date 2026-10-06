@@ -259,3 +259,20 @@ a.icon-btn, a.btn { text-decoration: none; }
 /* Synchronisé : pastille réduite à l'icône (le texte reste pour les autres états) */
 .sync-pill[data-status="online"] span:last-child { display: none; }
 .sync-pill[data-status="online"] { width: 34px; padding: 0; justify-content: center; }
+
+/* ---------- Cures ---------- */
+.cure { display: flex; flex-direction: column; gap: 6px; padding: var(--sp-3) var(--sp-4); }
+.cure__main { display: flex; align-items: center; gap: var(--sp-3); width: 100%; text-align: left; }
+.cure__main .row__body { flex: 1; min-width: 0; }
+.cure__status { font-size: var(--fs-xs); font-weight: 750; color: var(--accent); }
+.cure__bar { height: 6px; border-radius: var(--r-pill); background: var(--surface-3); overflow: hidden; }
+.cure__bar span { display: block; height: 100%; border-radius: inherit; background: var(--gradient-accent); }
+.cure__period { font-size: var(--fs-xs); color: var(--text-3); }
+.cure__note { font-size: var(--fs-sm); color: var(--text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.cure__stop { align-self: flex-start; margin-top: 2px; }
+.cures-history { margin-top: var(--sp-3); }
+.cures-history summary { display: flex; align-items: center; gap: var(--sp-2); padding: 10px 4px; cursor: pointer; list-style: none; font-weight: 700; color: var(--text-2); }
+.cures-history summary::-webkit-details-marker { display: none; }
+.cures-history summary span:first-child { flex: 1; }
+.cures-history__chev { display: inline-flex; transition: transform .2s; }
+.cures-history[open] .cures-history__chev { transform: rotate(90deg); }

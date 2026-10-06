@@ -1,4 +1,4 @@
-/* Fiche : informations du cheval, notes, pense-bête, gestion des chevaux, compte. */
+/* Fiche : informations du cheval, cures, notes, pense-bête, gestion des chevaux, compte. */
 import { $, esc, debounce } from '../core/utils.js';
 import { formatKey, todayKey } from '../core/dates.js';
 import * as store from '../core/store.js';
@@ -8,6 +8,7 @@ import { openSheet, closeSheet, confirmDialog } from '../ui/dialog.js';
 import { toast, toastError } from '../ui/toast.js';
 import { icon } from '../ui/icons.js';
 import { ageFromBirth, horseName } from './common.js';
+import { renderCures } from './cures.js';
 
 /* ---------- Rendu ---------- */
 function renderCard() {
@@ -63,6 +64,7 @@ export function renderProfile() {
   const p = store.field('profile');
   note.disabled = !store.activeId();
   if (document.activeElement !== note && note.value !== p.note) note.value = p.note || '';
+  renderCures();
   renderNotes();
   $('#horseList').innerHTML = horseRows('list');
   if (!$('#switchSheet').hidden) $('#switchList').innerHTML = horseRows('switch');

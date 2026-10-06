@@ -196,6 +196,17 @@
       </section>
       <section class="section">
         <header class="section__head">
+          <div><h2 class="section__title">Cures en cours</h2><p class="card__sub">Compléments, traitements…</p></div>
+          <button type="button" class="carrot" data-open="cure" aria-label="Ajouter une cure" title="Ajouter une cure">🥕</button>
+        </header>
+        <div class="stack" id="curesList"></div>
+        <details class="cures-history" id="curesHistory" hidden>
+          <summary><span>Historique des cures</span><span class="badge" id="curesHistoryCount">0</span><span class="cures-history__chev" data-icon="chevronRight" data-size="16"></span></summary>
+          <div class="card card--list" id="curesHistoryList"></div>
+        </details>
+      </section>
+      <section class="section">
+        <header class="section__head">
           <div><h2 class="section__title">Pense-bête</h2><p class="card__sub" id="notesSub">Observations datées</p></div>
           <button type="button" class="carrot" data-open="note" aria-label="Ajouter une note" title="Ajouter une note">🥕</button>
         </header>
@@ -332,6 +343,27 @@
         <div class="field"><label class="field__label" for="noDate">Date</label><input class="input" id="noDate" type="date" name="date"></div>
         <div class="field"><label class="field__label" for="noText">Observation</label><textarea class="input textarea" id="noText" name="text" maxlength="5000" rows="5" placeholder="Ex. Léger gonflement antérieur gauche, à surveiller."></textarea></div>
         <div class="form-actions"><button type="button" class="btn btn--ghost" data-close>Annuler</button><button type="submit" class="btn btn--primary">Ajouter</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cure -->
+  <div class="sheet-backdrop" id="cureSheet" hidden>
+    <div class="sheet sheet--tall" role="dialog" aria-modal="true" aria-labelledby="cureTitle" tabindex="-1">
+      <div class="sheet__grabber" aria-hidden="true"></div>
+      <header class="sheet__head"><h2 class="sheet__title" id="cureTitle">Nouvelle cure</h2><button type="button" class="icon-btn" data-close aria-label="Fermer"><span data-icon="close"></span></button></header>
+      <form class="form sheet__scroll" id="cureForm" novalidate>
+        <input type="hidden" name="editId">
+        <div class="field"><label class="field__label" for="cureName">Produit</label><input class="input" id="cureName" name="name" maxlength="120" placeholder="Ex. Magnésium, Equistro, antibiotique…" autocomplete="off"></div>
+        <div class="field"><label class="field__label" for="cureKind">Type</label><select class="input select" id="cureKind" name="kind"></select></div>
+        <div class="form-grid">
+          <div class="field"><label class="field__label" for="cureStart">Début</label><input class="input" id="cureStart" type="date" name="start"></div>
+          <div class="field"><label class="field__label" for="cureEnd">Fin <span class="field__opt">(facultatif)</span></label><input class="input" id="cureEnd" type="date" name="end"></div>
+        </div>
+        <div class="field"><label class="field__label" for="cureDose">Posologie <span class="field__opt">(facultatif)</span></label><input class="input" id="cureDose" name="dose" maxlength="200" placeholder="Ex. 1 dose matin et soir" autocomplete="off"></div>
+        <div class="field"><label class="field__label" for="cureNote">Note <span class="field__opt">(facultatif)</span></label><textarea class="input textarea" id="cureNote" name="note" maxlength="1000" rows="2" placeholder="Prescrit par…, motif, effets observés"></textarea></div>
+        <div class="form-actions"><button type="button" class="btn btn--ghost" data-close>Annuler</button><button type="submit" class="btn btn--primary">Enregistrer</button></div>
+        <button type="button" class="btn btn--ghost btn--danger-text" id="cureDelete" hidden><span data-icon="trash" data-size="18"></span><span>Supprimer la cure</span></button>
       </form>
     </div>
   </div>

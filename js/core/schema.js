@@ -12,13 +12,14 @@
  *   horse_<id>_plans        { 'AAAA-MM-JJ': { type } }
  *   horse_<id>_activities   ['Repos', …]
  *   horse_<id>_horseNotes   [{ id, date, text }]
+ *   horse_<id>_cures        [{ id, name, kind, start, end, dose, note, done }]
  *
  * Les montants restent en euros (nombres décimaux) et les identifiants restent
  * numériques pour rester lisibles par une ancienne version de l'app.
  */
 import { isDateKey, isTime } from './dates.js';
 
-export const HORSE_FIELDS = ['profile', 'finances', 'appointments', 'plans', 'activities', 'horseNotes'];
+export const HORSE_FIELDS = ['profile', 'finances', 'appointments', 'plans', 'activities', 'horseNotes', 'cures'];
 
 export const DEFAULT_ACTIVITIES = ['Repos', 'Travail sur le plat', 'Dressage', 'Saut d’obstacles', 'Trotting', 'Cavaletti', 'Paddock', 'Prés', 'Saut de puce', 'Balade extérieure', 'Travail à pied', 'Longe', 'Renforcement', 'Soin'];
 export const REST = 'Repos';
@@ -32,7 +33,7 @@ export const REPEAT_MONTHS = { 0: 'Jamais', 1: 'Tous les mois', 3: 'Tous les 3 m
 
 export const horseKey = (id, field) => `horse_${id}_${field}`;
 export const parseHorseKey = key => {
-  const m = /^horse_(.+)_(profile|finances|appointments|plans|activities|horseNotes)$/.exec(key);
+  const m = /^horse_(.+)_(profile|finances|appointments|plans|activities|horseNotes|cures)$/.exec(key);
   return m ? { id: m[1], field: m[2] } : null;
 };
 
@@ -117,6 +118,20 @@ export function normalizeNotes(raw) {
     .sort(byDateDesc);
 }
 
+/** Cures (compléments, traitements…) : en cours si début ≤ aujourd'hui ≤ fin (fin facultative). */
+export const CURE_KINDS = ['Complément alimentaire', 'Traitement vétérinaire', 'Vermifuge', 'Phytothérapie', 'Soin local', 'Autre'];
+export function normalizeCures(raw) {
+  return asArray(raw)
+    .filter(isObj)
+    .map(c => {
+      const start = isDateKey(c.start) ? c.start : '';
+      const end = isDateKey(c.end) && c.end >= start ? c.end : '';
+      return { id: keepId(c.id), name: str(c.name, 120).trim(), kind: CURE_KINDS.includes(c.kind) ? c.kind : 'Autre', start, end, dose: str(c.dose, 200), note: str(c.note, 1000), done: c.done === true };
+    })
+    .filter(c => c.id !== null && c.name && c.start)
+    .sort((a, b) => b.start.localeCompare(a.start) || String(b.id).localeCompare(String(a.id)));
+}
+
 /** Contacts : communs à tous les chevaux (clé « contacts »). */
 export function normalizeContacts(raw) {
   return asArray(raw)
@@ -131,7 +146,8 @@ const FIELD_NORMALIZERS = {
   appointments: normalizeAppointments,
   plans: normalizePlans,
   activities: normalizeActivities,
-  horseNotes: normalizeNotes
+  horseNotes: normalizeNotes,
+  cures: normalizeCures
 };
 
 /** Normalise une valeur selon sa clé. */

@@ -71,7 +71,7 @@ export const theme = () => data.theme || 'dark';
 export const contacts = () => structuredClone(data.contacts || []);
 export const activeHorse = () => horses().find(h => h.id === activeId()) || null;
 
-const DEFAULTS = { profile: () => normalizeProfile(null), finances: () => [], appointments: () => [], plans: () => ({}), activities: () => normalizeActivities(null), horseNotes: () => [] };
+const DEFAULTS = { profile: () => normalizeProfile(null), finances: () => [], appointments: () => [], plans: () => ({}), activities: () => normalizeActivities(null), horseNotes: () => [], cures: () => [] };
 
 /** Champ du cheval actif (copie modifiable). */
 export function field(name, id = activeId()) {
@@ -170,7 +170,7 @@ export const cloudSnapshot = () => structuredClone(data);
 /** Supprime toutes les données d'un cheval (clés locales et cloud). */
 export function removeHorseData(id) {
   const patch = {};
-  ['profile', 'finances', 'appointments', 'plans', 'activities', 'horseNotes'].forEach(f => (patch[horseKey(id, f)] = null));
+  ['profile', 'finances', 'appointments', 'plans', 'activities', 'horseNotes', 'cures'].forEach(f => (patch[horseKey(id, f)] = null));
   return patch;
 }
 
