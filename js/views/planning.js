@@ -6,6 +6,7 @@ import { REST } from '../core/schema.js';
 import { openSheet, confirmDialog, promptDialog } from '../ui/dialog.js';
 import { toast, toastError } from '../ui/toast.js';
 import { icon } from '../ui/icons.js';
+import { slideIn } from '../ui/motion.js';
 import { renderDonut, PALETTE } from '../ui/charts.js';
 import { activityIcon } from '../ui/equine-icons.js';
 import { capitalize, horseName } from './common.js';
@@ -145,8 +146,10 @@ export function initPlanning() {
     const w = e.target.closest('[data-week]');
     if (!w) return;
     const n = Number(w.dataset.week);
+    const before = weekStart.getTime();
     weekStart = n === 0 ? mondayOf(new Date()) : addDays(weekStart, 7 * n);
     renderWeek();
+    slideIn($('#weekRows'), Math.sign(weekStart.getTime() - before));
   });
   $('#weekRows').addEventListener('change', e => {
     const k = e.target.dataset.day;

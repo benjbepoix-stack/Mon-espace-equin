@@ -1,0 +1,111 @@
+/* =========================================================
+   MOUVEMENT — navigation, arrivée des données, gestes, thème
+   Courbes et durées : tokens.css. Pilotage : js/ui/motion.js.
+   ========================================================= */
+
+/* ---------- Barre d'onglets : pastille qui glisse vers l'onglet choisi ---------- */
+.tabbar__indicator {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc((100% - 12px - 8px) / 5); /* 5 onglets, 4 espaces de 2 px */
+  border-radius: 18px;
+  background: var(--accent-soft);
+  transform: translateX(calc(var(--tab-i, 0) * (100% + 2px)));
+  pointer-events: none;
+}
+.tabbar.is-ready .tabbar__indicator { transition: transform 280ms var(--ease-in-out); }
+.tabbar__indicator[hidden] { display: none; }
+@media (min-width: 900px) {
+  .tabbar__indicator { border-radius: 13px; }
+}
+
+/* ---------- Changement de vue : la page arrive du côté de l'onglet ---------- */
+.view.is-entering { animation: view-in 260ms var(--ease-out); }
+@keyframes view-in {
+  from { opacity: 0; transform: translateX(calc(var(--view-dir, 0) * var(--enter-x))); }
+}
+
+/* Première ouverture après connexion : les blocs arrivent en léger décalé */
+.view.is-cascade > * { animation: rise 420ms var(--ease-out) backwards; }
+.view.is-cascade > :nth-child(2) { animation-delay: 50ms; }
+.view.is-cascade > :nth-child(3) { animation-delay: 100ms; }
+.view.is-cascade > :nth-child(4) { animation-delay: 150ms; }
+.view.is-cascade > :nth-child(5) { animation-delay: 200ms; }
+.view.is-cascade > :nth-child(n + 6) { animation-delay: 250ms; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(var(--enter-y)); }
+}
+
+/* ---------- Données qui se remplissent à l'arrivée sur la vue ---------- */
+.view.is-entering .progress__bar,
+.view.is-entering .cure__bar span {
+  transform-origin: left center;
+  animation: grow-x 700ms var(--ease-out) 120ms backwards;
+}
+@keyframes grow-x { from { transform: scaleX(0); } }
+
+.chart-bar { transform-box: fill-box; transform-origin: 50% 100%; }
+.view.is-entering .chart-bar { animation: grow-y 520ms var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 28ms); }
+@keyframes grow-y { from { transform: scaleY(0); } }
+
+
+/* ---------- Calendrier : le détail du jour ne bouge plus à chaque mise à jour ---------- */
+.cal-detail { animation: none; }
+
+/* ---------- Feuille : suit le doigt quand on la tire vers le bas ---------- */
+@media (max-width: 719px) {
+  .sheet__grabber,
+  .sheet__head { touch-action: none; cursor: grab; }
+  .sheet-backdrop.is-dragging,
+  .sheet-backdrop.is-dragging .sheet { transition: none; }
+  .sheet-backdrop.is-dragging .sheet__grabber { background: var(--border-strong); }
+}
+
+/* ---------- Bouton carotte : petit rebond au toucher ---------- */
+.carrot { transition: transform 160ms var(--ease-out), background var(--dur) var(--ease); }
+.carrot:active { transform: scale(.92) rotate(-8deg); }
+
+/* ---------- Historique des cures : ouverture en douceur (navigateurs récents) ---------- */
+.cures-history { interpolate-size: allow-keywords; }
+.cures-history::details-content {
+  block-size: 0;
+  overflow: clip;
+  opacity: 0;
+  transition: block-size 240ms var(--ease-out), opacity 240ms var(--ease-out), content-visibility 240ms allow-discrete;
+}
+.cures-history[open]::details-content { block-size: auto; opacity: 1; }
+.cures-history__chev { transition: transform 200ms var(--ease-out); }
+
+/* ---------- Connexion : l'écran s'efface au lieu de disparaître d'un coup ---------- */
+.auth { transition: opacity 300ms var(--ease-out); }
+.auth.is-leaving { opacity: 0; pointer-events: none; }
+
+/* ---------- Thème : révélation circulaire depuis le bouton (View Transitions) ---------- */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { z-index: 1; }
+
+/* ---------- Animations réduites : fondus conservés, déplacements retirés ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ambient span,
+  .skeleton,
+  .input[aria-invalid="true"],
+  .view.is-entering .progress__bar,
+  .view.is-entering .cure__bar span,
+  .view.is-entering .chart-bar { animation: none; }
+  .tabbar.is-ready .tabbar__indicator,
+  .tabbar__item [data-icon] { transition: none; }
+  .tabbar__item.is-active [data-icon] { transform: none; }
+  .btn:active:not(:disabled),
+  .icon-btn:active:not(:disabled),
+  .tabbar__item:active,
+  .cal-day:active,
+  .carrot:active { transform: none; }
+  .sheet,
+  .toast { transform: none !important; }
+  .sheet { opacity: 0; transition: opacity 200ms ease; }
+  .sheet-backdrop.is-open .sheet { opacity: 1; }
+  .toast { transition: opacity 200ms ease; }
+}

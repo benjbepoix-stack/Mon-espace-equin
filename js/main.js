@@ -9,6 +9,7 @@ import { applyTheme } from './ui/theme.js';
 import { renderStatus } from './ui/status.js';
 import { toast, toastError } from './ui/toast.js';
 import { icon } from './ui/icons.js';
+import { playViewEnter, countUp, reducedMotion } from './ui/motion.js';
 import { initCalendarPrompt } from './features/calendar-prompt.js';
 import { renderHome } from './views/home.js';
 import { initAppointments, openAppointment, renderPastSheet, exportUpcoming } from './views/appointments.js';
@@ -20,6 +21,7 @@ import { initContacts, renderContacts, openContact } from './views/contacts.js';
 import { horseName } from './views/common.js';
 
 const VIEWS = { homeView: renderHome, financeView: renderFinance, planningView: renderPlanning, profileView: renderProfile, contactsView: renderContacts };
+const TAB_ORDER = Object.keys(VIEWS); // même ordre que la barre d'onglets
 const VIEW_KEY = 'equin_last_view';
 const LAST_UID = 'equin_last_uid';
 let currentView = 'homeView';
@@ -39,6 +41,9 @@ const renderCurrent = () => {
 
 function switchView(id, { scroll = true } = {}) {
   if (!VIEWS[id]) id = 'homeView';
+  const from = TAB_ORDER.indexOf(currentView);
+  const to = TAB_ORDER.indexOf(id);
+  const changed = id !== currentView;
   currentView = id;
   $$('.view').forEach(v => (v.hidden = v.id !== id));
   $$('[data-view]').forEach(b => {
@@ -47,7 +52,12 @@ function switchView(id, { scroll = true } = {}) {
     if (active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
   });
+  $('.tabbar').style.setProperty('--tab-i', to);
+  const view = $(`#${id}`);
+  // La vue arrive du côté de l'onglet choisi (droite si l'onglet est plus à droite).
+  if (changed) playViewEnter(view, { dir: Math.sign(to - from) });
   renderCurrent();
+  if (changed) countUp(view);
   try {
     sessionStorage.setItem(VIEW_KEY, id);
   } catch {
@@ -61,15 +71,28 @@ let authMode = 'login'; // login | signup | reset
 
 function showAuth(state) {
   document.documentElement.classList.add('is-auth-pending');
+  $('#authScreen').classList.remove('is-leaving');
   $('#authScreen').hidden = false;
   $('#authLoading').hidden = state !== 'loading';
   $('#authForm').hidden = state !== 'form';
   $('#authOffline').hidden = state !== 'offline';
 }
 
+/* L'écran de connexion s'efface pendant que l'accueil arrive en cascade. */
 function hideAuth() {
+  const auth = $('#authScreen');
   document.documentElement.classList.remove('is-auth-pending');
-  $('#authScreen').hidden = true;
+  if (auth.hidden || auth.classList.contains('is-leaving')) return renderCurrent();
+  auth.classList.add('is-leaving');
+  setTimeout(() => {
+    if (!auth.classList.contains('is-leaving')) return;
+    auth.hidden = true;
+    auth.classList.remove('is-leaving');
+  }, 300);
+  const view = $(`#${currentView}`);
+  playViewEnter(view, { cascade: true });
+  renderCurrent();
+  countUp(view);
 }
 
 function renderAuthMode() {
@@ -135,7 +158,6 @@ function onUser(user) {
     write(LAST_UID, user.uid);
     $('#accountEmail').textContent = `Connecté : ${user.email}`;
     hideAuth();
-    renderCurrent();
   } else {
     authMode = 'login';
     renderAuthMode();
@@ -168,6 +190,35 @@ function initAuthUI() {
       toastError('Déconnexion impossible. Réessayez.');
     }
   });
+}
+
+/* ---------- Thème : révélation circulaire depuis le bouton ---------- */
+let themeInstant = false;
+
+function toggleTheme(e) {
+  const flip = () => store.setKeys({ theme: store.theme() === 'light' ? 'dark' : 'light' });
+  if (!document.startViewTransition || reducedMotion()) return flip();
+  const r = e.currentTarget.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const transition = document.startViewTransition(() => {
+    // La capture doit montrer le nouveau thème tout de suite, sans fondu de couleurs.
+    themeInstant = true;
+    try {
+      flip();
+    } finally {
+      themeInstant = false;
+    }
+  });
+  transition.ready
+    .then(() =>
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 500, easing: 'cubic-bezier(.77, 0, .175, 1)', pseudoElement: '::view-transition-new(root)' }
+      )
+    )
+    .catch(() => {});
 }
 
 /* ---------- Divers ---------- */
@@ -217,13 +268,13 @@ async function init() {
   initAuthUI();
 
   store.subscribe(keys => {
-    if (keys.includes('theme')) applyTheme(store.theme(), { animate: true });
+    if (keys.includes('theme')) applyTheme(store.theme(), { animate: !themeInstant });
     renderCurrent();
   });
   $$('[data-view]').forEach(b => b.addEventListener('click', () => switchView(b.dataset.view)));
   document.addEventListener('click', onOpen);
   $('#horseSwitchBtn').addEventListener('click', openSwitcher);
-  $('#themeToggle').addEventListener('click', () => store.setKeys({ theme: store.theme() === 'light' ? 'dark' : 'light' }));
+  $('#themeToggle').addEventListener('click', toggleTheme);
 
   let initial = 'homeView';
   try {
@@ -232,6 +283,8 @@ async function init() {
     /* ignore */
   }
   switchView(initial, { scroll: false });
+  // La pastille des onglets ne glisse qu'après la première mise en place.
+  requestAnimationFrame(() => requestAnimationFrame(() => $('.tabbar').classList.add('is-ready')));
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flushNow();

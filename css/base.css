@@ -96,13 +96,11 @@ html.theme-transition *::after {
   transition: background-color .4s var(--ease), border-color .4s var(--ease), color .4s var(--ease), fill .4s var(--ease) !important;
 }
 
+/* Animations réduites : on garde les fondus (ils aident à comprendre), on retire
+   les déplacements. Le détail par composant est dans motion.css. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-    scroll-behavior: auto !important;
-  }
+  :root { --enter-y: 0px; --enter-x: 0px; }
+  html { scroll-behavior: auto; }
 }
 
 .noscript {

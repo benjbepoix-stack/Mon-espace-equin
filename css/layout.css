@@ -65,8 +65,8 @@
   transition: color var(--dur) var(--ease), background var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .tabbar__item:active { transform: scale(.94); }
-.tabbar__item.is-active { color: var(--accent); background: var(--accent-soft); }
-.tabbar__item [data-icon] { transition: transform var(--dur-slow) var(--ease-spring); }
+.tabbar__item.is-active { color: var(--accent); }
+.tabbar__item [data-icon] { transition: transform 250ms var(--ease-out); }
 .tabbar__item.is-active [data-icon] { transform: translateY(-1px) scale(1.08); }
 
 /* ---------- Contenu ---------- */
@@ -76,8 +76,7 @@
   padding: var(--sp-2) max(var(--gutter), env(safe-area-inset-right)) calc(var(--tabbar-h) + var(--safe-bottom) + 40px) max(var(--gutter), env(safe-area-inset-left));
 }
 .app:focus { outline: none; }
-.view { animation: view-in var(--dur-slow) var(--ease); }
-@keyframes view-in { from { opacity: 0; transform: translateY(8px); } }
+/* Entrée des vues : voir motion.css (direction selon l'onglet, cascade des blocs) */
 
 .section { margin-top: var(--sp-6); }
 .section.card { margin-top: var(--sp-6); }

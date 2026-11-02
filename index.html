@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/views/equine.css">
+  <link rel="stylesheet" href="css/motion.css">
 
   <script type="module" src="js/main.js"></script>
 </head>
@@ -72,6 +73,7 @@
   </header>
 
   <nav class="tabbar" aria-label="Navigation principale">
+    <span class="tabbar__indicator" aria-hidden="true"></span>
     <button type="button" class="tabbar__item is-active" data-view="homeView" aria-current="page"><span data-icon="home"></span><span>Accueil</span></button>
     <button type="button" class="tabbar__item" data-view="financeView"><span data-icon="coins"></span><span>Finances</span></button>
     <button type="button" class="tabbar__item" data-view="planningView"><span data-icon="calendar"></span><span>Planning</span></button>
@@ -180,7 +182,7 @@
           </div>
         </header>
         <div class="donut-chart donut-chart--stack">
-          <div class="donut" id="activityDonut"><div class="donut__center"><strong id="activityTotal">0</strong><span>activités</span></div></div>
+          <div class="donut" id="activityDonut"><div class="donut__center"><strong id="activityTotal" data-count-up>0</strong><span>activités</span></div></div>
           <div class="legend" id="activityLegend"></div>
         </div>
         <button type="button" class="btn btn--soft btn--block section" data-open="activities"><span>🥕</span><span>Gérer la liste des activités</span></button>

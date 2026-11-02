@@ -30,14 +30,15 @@ export function toast(message, { type = 'success', duration } = {}) {
   };
   render(message, type);
   ensureHost().appendChild(el);
-  requestAnimationFrame(() => el.classList.add('is-visible'));
+  void el.offsetWidth; // applique l'état de départ pour que la transition d'entrée se joue
+  el.classList.add('is-visible');
 
   let timer = null;
   const close = () => {
     clearTimeout(timer);
     el.classList.remove('is-visible');
     el.addEventListener('transitionend', () => el.remove(), { once: true });
-    setTimeout(() => el.remove(), 400);
+    setTimeout(() => el.remove(), 450);
   };
   const schedule = t => {
     clearTimeout(timer);
