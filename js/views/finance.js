@@ -86,11 +86,11 @@ export function renderFinance() {
       [euroRound(due), 'à payer'],
       [String(pending), 'remb. en attente']
     ]
-      .map(([v, l]) => `<div class="stat"><strong>${esc(v)}</strong><span>${l}</span></div>`)
+      .map(([v, l]) => `<div class="stat"><strong data-count-up>${esc(v)}</strong><span>${l}</span></div>`)
       .join('');
     const total = paid + due;
     const pct = total ? Math.round((paid / total) * 100) : 0;
-    $('#paidRate').innerHTML = `<div class="paid-rate__top"><span>Réglé en ${year}</span><strong>${pct} %</strong></div><div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Part réglée"><div class="progress__bar" style="--value:${pct}%"></div></div><p class="card__sub">${euro(paid)} payés · ${euro(due)} restant à payer</p>`;
+    $('#paidRate').innerHTML = `<div class="paid-rate__top"><span>Réglé en ${year}</span><strong data-count-up>${pct} %</strong></div><div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Part réglée"><div class="progress__bar" style="--value:${pct}%"></div></div><p class="card__sub">${euro(paid)} payés · ${euro(due)} restant à payer</p>`;
     renderChart(list);
   }
   let shown = [...list].sort((a, b) => b.date.localeCompare(a.date) || String(b.id).localeCompare(String(a.id)));

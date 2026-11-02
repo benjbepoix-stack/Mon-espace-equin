@@ -3,7 +3,7 @@
    secours hors ligne. L'app-shell est aussi pré-mis en cache à l'installation,
    pour qu'un tout premier lancement hors ligne affiche l'app au lieu d'un
    écran blanc. */
-const CACHE = 'cavalia-v2';
+const CACHE = 'cavalia-v3';
 
 const PRECACHE_URLS = [
   './',
@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
   './css/components.css',
   './css/layout.css',
   './css/views/equine.css',
+  './css/motion.css',
   './js/main.js',
   './js/config/firebase-config.js',
   './js/core/dates.js',
@@ -30,6 +31,7 @@ const PRECACHE_URLS = [
   './js/ui/dialog.js',
   './js/ui/equine-icons.js',
   './js/ui/icons.js',
+  './js/ui/motion.js',
   './js/ui/status.js',
   './js/ui/theme.js',
   './js/ui/toast.js',

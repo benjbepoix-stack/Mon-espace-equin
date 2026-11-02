@@ -1,6 +1,7 @@
 /* Graphiques légers sans dépendance : anneau (donut) et courbe SVG. */
 import { esc } from '../core/utils.js';
 import { formatKey } from '../core/dates.js';
+import { isEntering, tween } from './motion.js';
 
 // Couleurs par défaut ; le thème peut les redéfinir via --series-1 … --series-8.
 const DEFAULT_SERIES = ['#2ee6a8', '#6c8cff', '#ffc24b', '#ff7a85', '#b48cff', '#4fd1d9', '#ff9ecf', '#9aa8bf'];
@@ -22,17 +23,22 @@ export function renderDonut({ donut, legend, total }, entries, emptyText, { form
     return;
   }
   const colorOf = (entry, i) => entry[2] || PALETTE[i % PALETTE.length];
-  let cursor = 0;
-  const stops = entries.map((entry, i) => {
-    const start = (cursor / sum) * 360;
-    cursor += entry[1];
-    const end = (cursor / sum) * 360;
-    // léger espace entre segments pour un rendu plus raffiné
-    const gap = entries.length > 1 ? 1.2 : 0;
-    const color = colorOf(entry, i);
-    return `${color} ${start}deg ${Math.max(start, end - gap)}deg, transparent ${Math.max(start, end - gap)}deg ${end}deg`;
-  });
-  donut.style.setProperty('--donut', `conic-gradient(${stops.join(',')})`);
+  // k de 0 à 1 : part de l'anneau déjà dessinée (remplissage animé à l'arrivée sur la vue).
+  const paint = k => {
+    let cursor = 0;
+    const stops = entries.map((entry, i) => {
+      const start = (cursor / sum) * 360 * k;
+      cursor += entry[1];
+      const end = (cursor / sum) * 360 * k;
+      // léger espace entre segments pour un rendu plus raffiné
+      const gap = entries.length > 1 ? 1.2 * k : 0;
+      const color = colorOf(entry, i);
+      return `${color} ${start}deg ${Math.max(start, end - gap)}deg, transparent ${Math.max(start, end - gap)}deg ${end}deg`;
+    });
+    donut.style.setProperty('--donut', `conic-gradient(${stops.join(',')}, var(--surface-3) ${360 * k}deg 360deg)`);
+  };
+  if (isEntering(donut)) tween(donut, 800, paint);
+  else paint(1);
   legend.innerHTML = entries
     .map(
       (entry, i) =>
@@ -266,7 +272,7 @@ export function renderBarChart(host, groups, { bars, line, fmt, axisFmt, highlig
   const rects = groups
     .map((g, i) => {
       const start = cx(i) - (barW * bars.length + gap * (bars.length - 1)) / 2;
-      return bars.map((b, k) => `<path d="${barPath(start + k * (barW + gap), y(g.values[b.key] || 0), barW, base)}" fill="${b.color}"/>`).join('');
+      return bars.map((b, k) => `<path class="chart-bar" style="--i:${i}" d="${barPath(start + k * (barW + gap), y(g.values[b.key] || 0), barW, base)}" fill="${b.color}"/>`).join('');
     })
     .join('');
   let lineSvg = '';

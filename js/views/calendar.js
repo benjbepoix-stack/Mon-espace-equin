@@ -5,6 +5,7 @@ import * as store from '../core/store.js';
 import { REST } from '../core/schema.js';
 import { toast } from '../ui/toast.js';
 import { icon } from '../ui/icons.js';
+import { slideIn } from '../ui/motion.js';
 import { activityIcon } from '../ui/equine-icons.js';
 import { appointmentRow, openAppointment } from './appointments.js';
 import { expenseRow, openExpense } from './finance.js';
@@ -97,6 +98,7 @@ export function renderCalendar() {
 }
 
 function step(n) {
+  const before = month.getTime();
   if (n === 0) {
     month = firstOfMonth(new Date());
     selected = todayKey();
@@ -106,6 +108,10 @@ function step(n) {
     selected = monthKey(month) === todayKey().slice(0, 7) ? todayKey() : dateKey(month);
   }
   renderCalendar();
+  // Le nouveau mois arrive du côté vers lequel on avance.
+  const dir = Math.sign(month.getTime() - before);
+  if (dir) slideIn($('#calGrid'), dir);
+  slideIn($('#calDay'));
 }
 
 export function initCalendar() {
@@ -115,10 +121,16 @@ export function initCalendar() {
     if (s) return step(Number(s.dataset.calStep));
     const day = e.target.closest('[data-cal-day]');
     if (day) {
+      if (day.dataset.calDay === selected) return;
       selected = day.dataset.calDay;
       const d = fromKey(selected);
-      if (d.getMonth() !== month.getMonth() || d.getFullYear() !== month.getFullYear()) month = firstOfMonth(d);
-      return renderCalendar();
+      // Jour grisé d'un mois voisin : on change de mois en glissant de ce côté.
+      const otherMonth = d.getMonth() !== month.getMonth() || d.getFullYear() !== month.getFullYear();
+      const dir = otherMonth ? Math.sign(d - month) : 0;
+      if (dir) month = firstOfMonth(d);
+      renderCalendar();
+      if (dir) slideIn($('#calGrid'), dir);
+      return slideIn($('#calDay'));
     }
     const add = e.target.closest('[data-cal-add]');
     if (add?.dataset.calAdd === 'appointment') openAppointment(null, { date: selected });

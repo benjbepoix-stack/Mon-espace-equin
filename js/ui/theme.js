@@ -2,7 +2,7 @@
 import { $ } from '../core/utils.js';
 import { icon } from './icons.js';
 
-const THEME_COLORS = { dark: '#0b0f1a', light: '#f5f6fa' };
+const THEME_COLORS = { dark: '#1c1815', light: '#f5f0e9' };
 
 export function applyTheme(theme, { animate = false } = {}) {
   const root = document.documentElement;

@@ -50,7 +50,7 @@ function renderStats() {
     [euroRound(sum(year)), 'cette année'],
     [String(upcoming().length), 'rendez-vous']
   ]
-    .map(([v, l]) => `<div class="stat"><strong>${esc(v)}</strong><span>${l}</span></div>`)
+    .map(([v, l]) => `<div class="stat"><strong data-count-up>${esc(v)}</strong><span>${l}</span></div>`)
     .join('');
 }
 
