@@ -32,6 +32,11 @@ database.rules.json     règles Realtime Database (chaque compte ne voit que ses
 
 Sur un rendez-vous (vétérinaire, vaccination, vermifuge…), le champ « Rappel » permet de fixer une périodicité (1, 3, 6 ou 12 mois). Tant qu'aucun nouveau rendez-vous du même type n'est planifié, l'échéance calculée (date + périodicité) apparaît dans « Rappels à venir » sur l'accueil dès qu'elle tombe dans les 30 prochains jours (ou est dépassée). Un bouton « Planifier » ouvre directement le formulaire pré-rempli.
 
+## Commentaires de séance (Planning)
+
+Dès qu'une activité est choisie pour un jour, un champ « Commentaire sur la séance » apparaît sous elle (détail du jour dans le calendrier, et vue Semaine). Il s'enregistre en quittant le champ, est conservé si l'activité change et s'efface avec la journée.
+- Données : `horse_<id>_plans` → `{ 'AAAA-MM-JJ': { type, note? } }` (1000 caractères max), synchronisées comme le reste.
+
 ## Suivi des cures (Fiche)
 
 Section « Cures en cours » de la fiche du cheval : compléments, traitements vétérinaires, vermifuges, phytothérapie…

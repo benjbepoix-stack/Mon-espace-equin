@@ -3,7 +3,7 @@
    secours hors ligne. L'app-shell est aussi pré-mis en cache à l'installation,
    pour qu'un tout premier lancement hors ligne affiche l'app au lieu d'un
    écran blanc. */
-const CACHE = 'cavalia-v3';
+const CACHE = 'cavalia-v4';
 
 const PRECACHE_URLS = [
   './',

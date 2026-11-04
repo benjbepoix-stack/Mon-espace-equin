@@ -21,6 +21,62 @@ function firstOfMonth(d) {
 const monthKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 const byTime = (a, b) => (a.time || '99').localeCompare(b.time || '99');
 
+/* ---------- Séances : activité + commentaire ---------- */
+/** Enregistre l'activité d'un jour en conservant son commentaire ; sans activité, la journée est effacée. */
+export function setPlanType(k, type) {
+  const plans = store.field('plans');
+  if (type) plans[k] = { ...plans[k], type };
+  else delete plans[k];
+  store.setField('plans', plans);
+}
+
+/** Enregistre le commentaire d'une séance existante. Renvoie true si quelque chose a changé. */
+export function setPlanNote(k, text) {
+  const plans = store.field('plans');
+  if (!plans[k]) return false;
+  const note = text.trim().slice(0, 1000);
+  if ((plans[k].note || '') === note) return false;
+  if (note) plans[k].note = note;
+  else delete plans[k].note;
+  store.setField('plans', plans);
+  return true;
+}
+
+/** Champ commentaire d'une séance (data-plan-note porte la date). */
+export function planNoteField(k, note, label) {
+  return `<textarea class="input textarea plan-note" data-plan-note="${k}" rows="1" maxlength="1000" placeholder="Commentaire sur la séance…" aria-label="${esc(label)}">${esc(note || '')}</textarea>`;
+}
+
+/** Ré-affiche host sans perdre la saisie en cours dans un champ commentaire. */
+export function keepNoteInput(host, render) {
+  const el = document.activeElement;
+  const k = host.contains(el) ? el?.dataset?.planNote : null;
+  const state = k ? { value: el.value, start: el.selectionStart, end: el.selectionEnd } : null;
+  render();
+  if (!state) return;
+  const next = host.querySelector(`[data-plan-note="${k}"]`);
+  if (!next) return;
+  next.value = state.value;
+  next.focus({ preventScroll: true });
+  next.setSelectionRange(state.start, state.end);
+  autosize(next);
+}
+
+export function autosize(el) {
+  if (!el.offsetParent) return; // masqué : rien à mesurer
+  el.style.height = 'auto';
+  el.style.height = `${el.scrollHeight + 2}px`;
+}
+
+export function initNoteFields(host) {
+  host.addEventListener('input', e => e.target.dataset.planNote && autosize(e.target));
+  host.addEventListener('change', e => {
+    const k = e.target.dataset.planNote;
+    if (!k || !store.activeId()) return;
+    if (setPlanNote(k, e.target.value)) toast(e.target.value.trim() ? 'Commentaire enregistré' : 'Commentaire effacé');
+  });
+}
+
 function groupByDay(list) {
   const map = {};
   list.forEach(x => (map[x.date] ||= []).push(x));
@@ -50,9 +106,10 @@ function renderGrid() {
     const k = dateKey(d);
     const out = d.getMonth() !== month.getMonth();
     const plan = plans[k]?.type;
+    const noted = Boolean(plans[k]?.note);
     const a = apts[k]?.length || 0;
     const e = exps[k]?.length || 0;
-    const label = [formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' }), a && `${a} ${plural(a, 'rendez-vous', 'rendez-vous')}`, plan, e && `${e} ${plural(e, 'dépense')}`].filter(Boolean).join(', ');
+    const label = [formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' }), a && `${a} ${plural(a, 'rendez-vous', 'rendez-vous')}`, plan, noted && 'commentaire', e && `${e} ${plural(e, 'dépense')}`].filter(Boolean).join(', ');
     const cls = ['cal-day', out && 'is-out', k === today && 'is-today', k === selected && 'is-selected', k < today && 'is-past'].filter(Boolean).join(' ');
     const marks = [a ? '<i class="cal-mark cal-mark--apt"></i>' : '', plan ? `<i class="cal-mark cal-mark--act${plan === REST ? ' is-rest' : ''}"></i>` : '', e ? '<i class="cal-mark cal-mark--exp"></i>' : ''].join('');
     cells.push(`<button type="button" class="${cls}" data-cal-day="${k}" role="gridcell" aria-label="${esc(label)}"${k === selected ? ' aria-selected="true"' : ''}><span class="cal-day__num">${d.getDate()}</span><span class="cal-day__marks">${marks}</span></button>`);
@@ -69,12 +126,13 @@ function renderDay() {
   const apts = store.field('appointments').filter(a => a.date === selected).sort(byTime);
   const exps = store.field('finances').filter(x => x.date === selected);
   const value = plans[selected]?.type || '';
+  const note = plans[selected]?.note || '';
   const hasHorse = Boolean(store.activeId());
   const options = [`<option value=""${value ? '' : ' selected'}>— Aucune activité —</option>`, ...activities.map(a => `<option${a === value ? ' selected' : ''}>${esc(a)}</option>`)];
   if (value && !activities.includes(value)) options.push(`<option selected>${esc(value)}</option>`);
   const spent = exps.reduce((s, x) => s + netExpense(x), 0);
 
-  host.innerHTML = `
+  keepNoteInput(host, () => (host.innerHTML = `
     <header class="cal-detail__head">
       <div><h3 class="cal-detail__title">${esc(capitalize(formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' })))}</h3>
       <p class="card__sub">${selected === todayKey() ? 'Aujourd’hui' : esc(formatDate(d, { year: 'numeric' }))}</p></div>
@@ -83,13 +141,15 @@ function renderDay() {
       <span class="day__icon" aria-hidden="true">${value ? activityIcon(value) : ''}</span>
       <select class="input select day__select" id="calActivity" aria-label="Activité du jour"${hasHorse ? '' : ' disabled'}>${options.join('')}</select>
     </div>
+    ${value && hasHorse ? planNoteField(selected, note, 'Commentaire de la séance') : ''}
     ${apts.length ? `<p class="cal-detail__label">Rendez-vous</p><div class="card card--list card--flat">${apts.map(a => appointmentRow(a, { isPast: selected < todayKey() })).join('')}</div>` : ''}
     ${exps.length ? `<p class="cal-detail__label">Dépenses · ${esc(euro(spent))}</p><div class="card card--list card--flat">${exps.map(expenseRow).join('')}</div>` : ''}
     ${!apts.length && !exps.length ? '<p class="cal-detail__empty">Aucun rendez-vous ni dépense ce jour-là.</p>' : ''}
     <div class="cal-detail__actions">
       <button type="button" class="btn btn--soft btn--sm" data-cal-add="appointment"${hasHorse ? '' : ' disabled'}>${icon('calendarPlus', 17)}<span>Rendez-vous</span></button>
       <button type="button" class="btn btn--soft btn--sm" data-cal-add="expense"${hasHorse ? '' : ' disabled'}>${icon('coins', 17)}<span>Dépense</span></button>
-    </div>`;
+    </div>`));
+  host.querySelectorAll('[data-plan-note]').forEach(autosize);
 }
 
 export function renderCalendar() {
@@ -138,12 +198,10 @@ export function initCalendar() {
   });
   card.addEventListener('change', e => {
     if (e.target.id !== 'calActivity' || !store.activeId()) return;
-    const plans = store.field('plans');
-    if (e.target.value) plans[selected] = { type: e.target.value };
-    else delete plans[selected];
-    store.setField('plans', plans);
+    setPlanType(selected, e.target.value);
     toast(e.target.value ? `${e.target.value} · ${formatDate(fromKey(selected), { weekday: 'long', day: 'numeric' })}` : 'Journée effacée');
   });
+  initNoteFields($('#calDay'));
   // Balayage horizontal sur la grille pour changer de mois
   let x0 = null;
   let y0 = null;

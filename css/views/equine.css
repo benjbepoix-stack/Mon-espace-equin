@@ -113,6 +113,8 @@ html.is-auth-pending body > :not(.auth):not(.sheet-backdrop):not(.toast-stack):n
 .day.is-today .day__date span { color: var(--accent); }
 .day__icon { display: grid; place-items: center; color: var(--accent); }
 .day__select { min-height: 44px; font-weight: 650; }
+.day .plan-note { grid-column: 3; }
+.plan-note { min-height: 44px; padding: 10px 14px; font-size: var(--fs-sm); resize: none; overflow: hidden; }
 .day.is-empty .day__select { color: var(--text-3); -webkit-text-fill-color: var(--text-3); }
 
 /* ---------- Fiche ---------- */

@@ -9,7 +9,7 @@
  *   horse_<id>_profile      { name, birth, discipline, breed, stable, note }
  *   horse_<id>_finances     [{ id, type, name, date, amount(€), status, note, insurance, refundAmount }]
  *   horse_<id>_appointments [{ id, type, name, date, time, place, note, repeatMonths }]
- *   horse_<id>_plans        { 'AAAA-MM-JJ': { type } }
+ *   horse_<id>_plans        { 'AAAA-MM-JJ': { type, note? } }
  *   horse_<id>_activities   ['Repos', …]
  *   horse_<id>_horseNotes   [{ id, date, text }]
  *   horse_<id>_cures        [{ id, name, kind, start, end, dose, note, done }]
@@ -99,7 +99,9 @@ export function normalizePlans(raw) {
   const out = {};
   if (!isObj(raw)) return out;
   for (const [k, v] of Object.entries(raw)) {
-    if (isDateKey(k) && isObj(v) && v.type) out[k] = { type: str(v.type, 60) };
+    if (!isDateKey(k) || !isObj(v) || !v.type) continue;
+    const note = str(v.note, 1000).trim();
+    out[k] = note ? { type: str(v.type, 60), note } : { type: str(v.type, 60) };
   }
   return out;
 }

@@ -10,7 +10,7 @@ import { slideIn } from '../ui/motion.js';
 import { renderDonut, PALETTE } from '../ui/charts.js';
 import { activityIcon } from '../ui/equine-icons.js';
 import { capitalize, horseName } from './common.js';
-import { renderCalendar, initCalendar } from './calendar.js';
+import { renderCalendar, initCalendar, setPlanType, planNoteField, keepNoteInput, autosize, initNoteFields } from './calendar.js';
 
 let weekStart = mondayOf(new Date());
 let monthOffset = 0;
@@ -26,7 +26,8 @@ function renderWeek() {
   $('#weekTitle').textContent = current ? 'Cette semaine' : `Semaine du ${formatDate(weekStart, { day: 'numeric', month: 'long' })}`;
   $('#weekSub').textContent = `${formatDate(weekStart, { day: 'numeric', month: 'short' })} → ${formatDate(end, { day: 'numeric', month: 'short', year: 'numeric' })} · ${horseName()}`;
   // Clé de date LOCALE (l'ancienne version utilisait l'heure UTC).
-  $('#weekRows').innerHTML = Array.from({ length: 7 }, (_, i) => {
+  const host = $('#weekRows');
+  keepNoteInput(host, () => (host.innerHTML = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(weekStart, i);
     const k = dateKey(d);
     const value = plans[k]?.type || '';
@@ -36,8 +37,10 @@ function renderWeek() {
       <div class="day__date"><span>${formatDate(d, { weekday: 'short' })}</span><strong>${d.getDate()}</strong></div>
       <span class="day__icon" aria-hidden="true">${value ? activityIcon(value) : ''}</span>
       <select class="input select day__select" data-day="${k}" aria-label="Activité du ${formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}"${store.activeId() ? '' : ' disabled'}>${options.join('')}</select>
+      ${value && store.activeId() ? planNoteField(k, plans[k].note, `Commentaire du ${formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}`) : ''}
     </div>`;
-  }).join('');
+  }).join('')));
+  host.querySelectorAll('[data-plan-note]').forEach(autosize);
 }
 
 /* ---------- Mois ---------- */
@@ -154,12 +157,10 @@ export function initPlanning() {
   $('#weekRows').addEventListener('change', e => {
     const k = e.target.dataset.day;
     if (!k || !store.activeId()) return;
-    const plans = store.field('plans');
-    if (e.target.value) plans[k] = { type: e.target.value };
-    else delete plans[k];
-    store.setField('plans', plans);
+    setPlanType(k, e.target.value);
     toast(e.target.value ? `${e.target.value} · ${formatDate(new Date(`${k}T12:00:00`), { weekday: 'long', day: 'numeric' })}` : 'Journée effacée');
   });
+  initNoteFields($('#weekRows'));
   $('#activityOlder').addEventListener('click', () => {
     monthOffset++;
     renderMonth();
